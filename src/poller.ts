@@ -19,6 +19,8 @@ export class PiPoller {
       await fs.mkdir(this.config.tempDir, { recursive: true });
       await fs.mkdir(path.join(this.config.processedDir, 'audio'), { recursive: true });
       await fs.mkdir(path.join(this.config.processedDir, 'image'), { recursive: true });
+      await fs.mkdir(path.join(this.config.processedDir, 'media', 'audio'), { recursive: true });
+      await fs.mkdir(path.join(this.config.processedDir, 'media', 'image'), { recursive: true });
       console.log('[POLLER] Directories created');
     } catch (error) {
       console.error('[POLLER] Failed to create directories:', error);
@@ -87,6 +89,8 @@ export class PiPoller {
 
       await this.saveResult(result);
       
+      await this.saveMediaFile(file, localPath);
+      
       await this.markProcessed(file);
       
       await this.cleanupPiFile(file);
@@ -95,6 +99,11 @@ export class PiPoller {
       
       console.log(`[POLLER] Successfully processed: ${file.type}/${file.filename}`);
     } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.status === 404) {
+        console.warn(`[POLLER] File not found on Pi (may have been deleted): ${file.type}/${file.filename}`);
+        return;
+      }
+      
       console.error(`[POLLER] Failed to process ${file.type}/${file.filename}:`, error);
       
       if (localPath) {
@@ -156,6 +165,17 @@ export class PiPoller {
       console.log(`[POLLER] Deleted from Pi: ${file.type}/${file.filename}`);
     } catch (error) {
       console.error(`[POLLER] Failed to delete from Pi:`, error);
+    }
+  }
+
+  private async saveMediaFile(file: UnprocessedFile, tempPath: string) {
+    try {
+      const mediaDir = path.join(this.config.processedDir, 'media', file.type);
+      const destPath = path.join(mediaDir, file.filename);
+      await fs.copyFile(tempPath, destPath);
+      console.log(`[POLLER] Saved media file to: ${destPath}`);
+    } catch (error) {
+      console.error(`[POLLER] Failed to save media file:`, error);
     }
   }
 

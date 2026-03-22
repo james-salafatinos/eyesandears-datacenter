@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eyes and Ears - Memory Recall</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>👁️👂 Eyes and Ears</h1>
+            <p class="subtitle">Memory Recall Dashboard</p>
+        </header>
+
+        <nav class="tabs">
+            <button class="tab active" data-tab="timeline">📅 Timeline</button>
+            <button class="tab" data-tab="search">🔍 Search</button>
+            <button class="tab" data-tab="chat">💬 Ask AI</button>
+            <button class="tab" data-tab="status">⚙️ Status</button>
+        </nav>
+
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-value" id="totalItems">0</div>
+                <div class="stat-label">Total Memories</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="audioCount">0</div>
+                <div class="stat-label">Audio</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="imageCount">0</div>
+                <div class="stat-label">Images</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="queueCount">0</div>
+                <div class="stat-label">In Queue</div>
+            </div>
+        </div>
+
+        <!-- Timeline Tab -->
+        <div id="timeline-tab" class="tab-content active">
+            <div class="controls">
+                <div class="timeline-controls-row">
+                    <div class="timeline-type-filter">
+                        <button class="btn btn-small timeline-filter-btn active" data-filter="all" onclick="setTimelineFilter('all')">📊 All</button>
+                        <button class="btn btn-small timeline-filter-btn" data-filter="audio" onclick="setTimelineFilter('audio')">🎵 Audio</button>
+                        <button class="btn btn-small timeline-filter-btn" data-filter="image" onclick="setTimelineFilter('image')">📷 Images</button>
+                    </div>
+                    <button class="btn btn-primary" onclick="loadTimeline()">
+                        <span>🔄</span> Refresh
+                    </button>
+                </div>
+                <div class="date-filters">
+                    <label>From: <input type="datetime-local" id="startDate"></label>
+                    <label>To: <input type="datetime-local" id="endDate"></label>
+                    <button class="btn btn-primary" onclick="loadTimeline()">
+                        <span>🔍</span> Filter
+                    </button>
+                    <button class="btn btn-secondary" onclick="clearFilters()">
+                        <span>✖️</span> Clear
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Horizontal Timeline Visualization -->
+            <div class="horizontal-timeline-container" id="horizontalTimeline">
+                <div class="horizontal-timeline-label">Timeline</div>
+                <div class="horizontal-timeline" id="horizontalTimelineBar">
+                    <div class="loading-small">Loading...</div>
+                </div>
+            </div>
+            
+            <div id="timelineList" class="timeline-list">
+                <div class="loading">Loading timeline...</div>
+            </div>
+        </div>
+
+        <!-- Search Tab -->
+        <div id="search-tab" class="tab-content">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Search transcriptions and descriptions..." onkeypress="handleSearchKey(event)">
+                <button class="btn btn-primary" onclick="performSearch()">
+                    <span>🔍</span> Search
+                </button>
+            </div>
+            <div id="searchResults" class="search-results">
+                <div class="empty-state">
+                    <div class="empty-state-icon">🔍</div>
+                    <div class="empty-state-text">Enter a search term</div>
+                    <div class="empty-state-subtext">Search across all your audio transcriptions and image descriptions</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat Tab -->
+        <div id="chat-tab" class="tab-content">
+            <div class="chat-controls">
+                <div class="context-selector">
+                    <label>Context Time Range:</label>
+                    <div class="context-dates">
+                        <input type="datetime-local" id="chatStartDate" placeholder="Start">
+                        <span>to</span>
+                        <input type="datetime-local" id="chatEndDate" placeholder="End">
+                    </div>
+                    <div class="context-presets">
+                        <button class="btn btn-small" onclick="setContextRange('5min')">Last 5 Min</button>
+                        <button class="btn btn-small" onclick="setContextRange('10min')">Last 10 Min</button>
+                        <button class="btn btn-small" onclick="setContextRange('30min')">Last 30 Min</button>
+                        <button class="btn btn-small" onclick="setContextRange('hour')">Last Hour</button>
+                        <button class="btn btn-small" onclick="setContextRange('day')">Today</button>
+                        <button class="btn btn-small" onclick="setContextRange('week')">This Week</button>
+                        <button class="btn btn-small" onclick="setContextRange('all')">All Time</button>
+                    </div>
+                    <div class="context-type-selector">
+                        <label>Include:</label>
+                        <div class="context-type-buttons">
+                            <button class="btn btn-small context-type-btn active" data-type="both" onclick="setContextType('both')">🎵📷 Both</button>
+                            <button class="btn btn-small context-type-btn" data-type="audio" onclick="setContextType('audio')">🎵 Audio Only</button>
+                            <button class="btn btn-small context-type-btn" data-type="image" onclick="setContextType('image')">📷 Images Only</button>
+                        </div>
+                    </div>
+                    <div class="context-preview-info" id="contextInfo" style="display: none;">
+                        <span id="contextSummary"></span>
+                        <button class="btn btn-small" onclick="showContextPreview()">📋 View Context</button>
+                    </div>
+                </div>
+            </div>
+            <div id="chatMessages" class="chat-messages">
+                <div class="chat-welcome">
+                    <div class="chat-welcome-icon">🤖</div>
+                    <div class="chat-welcome-text">Ask me about your memories</div>
+                    <div class="chat-welcome-subtext">I can help you recall what was said or seen based on your captured audio and images</div>
+                </div>
+            </div>
+            <div class="chat-input-area">
+                <textarea id="chatInput" placeholder="Ask about your memories... (e.g., 'What did I talk about this morning?' or 'Did I see any cars today?')" onkeypress="handleChatKey(event)"></textarea>
+                <button class="btn btn-primary btn-send" onclick="sendChat()" id="sendBtn">
+                    <span>📤</span> Send
+                </button>
+            </div>
+        </div>
+
+        <!-- Status Tab -->
+        <div id="status-tab" class="tab-content">
+            <div class="status-section">
+                <h3>Processing Queue</h3>
+                <div id="queueStatus" class="queue-status">
+                    <div class="loading">Loading status...</div>
+                </div>
+            </div>
+            <div class="status-section">
+                <h3>Recent Activity</h3>
+                <div id="recentActivity" class="recent-activity">
+                    <div class="loading">Loading activity...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Media Modal -->
+    <div id="mediaModal" class="modal" onclick="closeModal(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <button class="modal-close" onclick="closeModal()">&times;</button>
+            <div id="modalBody"></div>
+        </div>
+    </div>
+
+    <!-- Context Preview Modal -->
+    <div id="contextModal" class="modal" onclick="closeContextModal(event)">
+        <div class="modal-content context-modal-content" onclick="event.stopPropagation()">
+            <button class="modal-close" onclick="closeContextModal()">&times;</button>
+            <div class="context-modal-header">
+                <h3>📋 Context Preview</h3>
+                <p>This is the context that will be sent to the AI with your question</p>
+            </div>
+            <div class="context-modal-body">
+                <div class="context-stats" id="contextStats"></div>
+                <div class="context-actions">
+                    <button class="btn btn-primary" onclick="copyContextToClipboard()">📋 Copy to Clipboard</button>
+                </div>
+                <textarea id="contextPreviewText" readonly></textarea>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

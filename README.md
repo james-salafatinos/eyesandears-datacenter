@@ -15,7 +15,7 @@ Windows PC processing server that polls a Raspberry Pi for unprocessed media fil
 
 1. **Node.js** (v18 or higher)
 2. **whisper.cpp** - Download and build from https://github.com/ggerganov/whisper.cpp
-3. **LM Studio** - Running with vision model at http://192.168.1.151:1234
+3. **LM Studio** - Running with vision model at http://192.168.1.159:1234
 4. **Raspberry Pi** - Running eyesandears3 server
 
 ## Setup
@@ -53,7 +53,7 @@ Edit `config.json`:
 ```json
 {
   "piUrl": "http://192.168.1.152:3000",
-  "lmStudioUrl": "http://192.168.1.151:1234",
+  "lmStudioUrl": "http://192.168.1.159:1234",
   "whisperCommand": "C:\\path\\to\\whisper.cpp\\build\\bin\\Release\\main.exe",
   "whisperModel": "C:\\path\\to\\whisper.cpp\\models\\ggml-base.en.bin",
   "pollingIntervalSeconds": 30,
@@ -72,7 +72,7 @@ Edit `config.json`:
 1. Open LM Studio
 2. Load a vision-capable model (e.g., LLaVA, BakLLaVA)
 3. Start the local server on port 1234
-4. Ensure it's accessible at http://192.168.1.151:1234
+4. Ensure it's accessible at http://192.168.1.159:1234
 
 ## Usage
 
@@ -160,7 +160,7 @@ eyesandears3-cloud/
 ### LM Studio Connection Failed
 - Check LM Studio is running
 - Verify server is on port 1234
-- Test: `curl http://192.168.1.151:1234/v1/models`
+- Test: `curl http://192.168.1.159:1234/v1/models`
 - Ensure vision model is loaded
 
 ### Pi Connection Failed

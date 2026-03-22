@@ -16,7 +16,7 @@ Edit `config.json` and set your whisper.cpp paths:
 ```json
 {
   "piUrl": "http://192.168.1.XXX:3000",
-  "lmStudioUrl": "http://192.168.1.151:1234",
+  "lmStudioUrl": "http://192.168.1.159:1234",
   "whisperCommand": "C:\\path\\to\\whisper.cpp\\main.exe",
   "whisperModel": "C:\\path\\to\\whisper.cpp\\models\\ggml-base.en.bin",
   "pollingIntervalSeconds": 30,
@@ -77,7 +77,7 @@ Recommended models:
 
 **Test LM Studio:**
 ```powershell
-curl http://192.168.1.151:1234/v1/models
+curl http://192.168.1.159:1234/v1/models
 ```
 
 **Test Pi connection:**
@@ -96,7 +96,7 @@ You should see:
 [SERVER] Loading configuration...
 [SERVER] Configuration loaded:
   - Pi URL: http://192.168.1.152:3000
-  - LM Studio URL: http://192.168.1.151:1234
+  - LM Studio URL: http://192.168.1.9:1234
   - Polling interval: 30s
 [POLLER] Starting polling every 30 seconds
 [SERVER] Processing server running on http://localhost:3001

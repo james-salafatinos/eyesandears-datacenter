@@ -3,6 +3,7 @@ import { promisify } from 'util';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import axios from 'axios';
+import sharp from 'sharp';
 import { Config, ProcessingResult } from './types';
 
 const execAsync = promisify(exec);
@@ -59,9 +60,21 @@ export class Processor {
 
     try {
       const imageBuffer = await fs.readFile(filePath);
-      const base64Image = imageBuffer.toString('base64');
+      
+      // Resize image to reduce token count (max 512px on longest side)
+      const resizedBuffer = await sharp(imageBuffer)
+        .resize(512, 512, {
+          fit: 'inside',
+          withoutEnlargement: true
+        })
+        .jpeg({ quality: 85 })
+        .toBuffer();
+      
+      const base64Image = resizedBuffer.toString('base64');
       const ext = path.extname(filename).toLowerCase();
       const mimeType = this.getMimeType(ext);
+      
+      console.log(`[PROCESSOR] Image resized: ${imageBuffer.length} -> ${resizedBuffer.length} bytes`);
 
       const response = await axios.post(
         `${this.config.lmStudioUrl}/v1/chat/completions`,
@@ -73,7 +86,7 @@ export class Processor {
               content: [
                 {
                   type: "text",
-                  text: "Describe this image in detail. Include what you see, any text present, colors, objects, people, and the overall scene or context."
+                  text: "You must respond with ONLY valid JSON, no other text. Analyze this image and return:\n{\n  \"man_present\": true/false,\n  \"gaze_direction\": \"looking at camera\"|\"looking left\"|\"looking right\"|\"looking up\"|\"looking down\"|\"eyes closed\"|\"not applicable\",\n  \"sentiment\": \"happy\"|\"sad\"|\"neutral\"|\"confused\"|\"surprised\"|\"angry\"|\"not applicable\",\n  \"mood\": \"calm\"|\"excited\"|\"tense\"|\"relaxed\"|\"not applicable\",\n  \"notable_details\": \"brief description or empty string\"\n}"
                 },
                 {
                   type: "image_url",
@@ -84,8 +97,8 @@ export class Processor {
               ]
             }
           ],
-          max_tokens: 500,
-          temperature: 0.7
+          max_tokens: 1000,
+          temperature: 0.6
         },
         {
           timeout: 60000
